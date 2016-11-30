@@ -1,3 +1,4 @@
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
@@ -79,8 +80,8 @@ public class AspectExtractor {
 					if(td2.reln().toString().equals("cop") && td.gov().equals(td2.gov()))
 					{
 						String[] tempRelation = new String[2];
-						tempRelation[0] = compoundNoun(dependencies,td.dep().word())+simpleNeg(dependencies, td.dep().word());
-						tempRelation[1] = compoundNoun(dependencies,td.gov().word())+negThroughNo(dependencies, td.gov().word());
+						tempRelation[0] = compoundNoun(dependencies,td.dep().word())+ td.dep().word();
+						tempRelation[1] = compoundNoun(dependencies,td.gov().word())+simpleNeg(dependencies, td.gov().word());
 						returnedFound.add(tempRelation);						
 					}
 				}
@@ -124,13 +125,13 @@ public class AspectExtractor {
 		for(TypedDependency td:dependencies)
 		{
 			if(td.gov().word() != null){
-				if(td.gov().word().equals(word) && td.reln().toString().equals("neg") && !td.dep().word().equals("no"))
+				if(td.gov().word().equals(word) && td.reln().toString().equals("neg"))
 				{
 					return "not "+word;
 				}
 			}
 		}
-		return word;
+		return negThroughNo(dependencies, word);
 	}
 	
 	//Negation through no determiner
@@ -138,17 +139,20 @@ public class AspectExtractor {
 	{
 		for(TypedDependency td:dependencies)
 		{
-			if(td.dep().word() != null){
+			if(td.dep().word()!=null)
+			{
 				if(td.dep().word().equals(word) && td.reln().toString().equals("amod"))
 				{
 					for(TypedDependency td2:dependencies)
 					{
-						if(td2.gov().word() != null){
-						if(td2.gov().word().equals(td.gov().word()) && td2.reln().toString().equals("amod")){						
-							return "not "+word;
+						if(td2.gov().word()!=null)
+						{
+							if(td2.gov().word().equals(td.gov().word()) && td2.dep().word().equals("no"))
+							{
+								return "not "+word;						
+							}
 						}
-						}
-					}					
+					}
 				}
 			}
 		}
@@ -177,6 +181,7 @@ public class AspectExtractor {
 		}
 		if(auxs==2 && cop)
 		{
+			
 			return "not "+word;
 		}
 		return word;
@@ -191,8 +196,8 @@ public class AspectExtractor {
 		{
 			if(td.reln().toString().equals(reln)){
 				String[] tempRelation = new String[2];
-				tempRelation[0] = compoundNoun(dependencies,td.gov().word())+simpleNeg(dependencies, td.gov().word());
-				tempRelation[1] = compoundNoun(dependencies,td.dep().word())+negThroughNo(dependencies,td.dep().word());
+				tempRelation[0] = compoundNoun(dependencies,td.gov().word())+td.gov().word();
+				tempRelation[1] = simpleNeg(dependencies,td.dep().word());
 				returnedFound.add(tempRelation);
 			}
 		}
@@ -213,8 +218,8 @@ public class AspectExtractor {
 					if(td2.reln().toString().equals(reln2) && td.gov().equals(td2.gov()))
 					{
 						String[] tempRelation = new String[2];
-						tempRelation[0] = compoundNoun(dependencies, td.dep().word())+simpleNeg(dependencies, td.dep().word());
-						tempRelation[1] = compoundNoun(dependencies, td.dep().word())+negThroughNo(dependencies,td2.dep().word());
+						tempRelation[0] = compoundNoun(dependencies, td.dep().word())+td.dep().word();
+						tempRelation[1] = simpleNeg(dependencies,td2.dep().word());
 						returnedFound.add(tempRelation);						
 					}
 				}
@@ -236,8 +241,8 @@ public class AspectExtractor {
         }
 	}
 	
-	private static void debugDependency(TypedDependency a){
-		System.out.println("[Governor - "+a.gov()+" - Dependent - "+a.dep()+" - Relation - "+a.reln()+"]");
+	public static void debugDependency(TypedDependency a){
+		System.out.println("[Governor - "+a.gov()+"["+a.gov().tag()+"] - Dependent - "+a.dep()+"["+a.dep().tag()+"] - Relation - "+a.reln()+"]");
 	}
 	//DEBUG ONLY//}
 }

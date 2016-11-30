@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.process.TokenizerFactory;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.parser.nndep.DependencyParser;
@@ -43,7 +44,7 @@ public class StnPrsrController {
 	
 	private final static String PCG_MODEL = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";        
 
-    private final TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "invertible=true");
+    private final static TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "invertible=true");
 
     private final LexicalizedParser parser = LexicalizedParser.loadModel(PCG_MODEL);
 
@@ -90,5 +91,19 @@ public class StnPrsrController {
        
           GrammaticalStructure gs = gsf.newGrammaticalStructure(parsableTree);
           return gs.typedDependenciesCollapsed();
+    }
+    
+    
+    public static String tokenizeString(String stringToToken){
+
+    		
+    		List<CoreLabel> tokens_words = tokenizerFactory.getTokenizer(new StringReader(stringToToken)).tokenize();
+    		
+    		String retornado = "";
+    		for(CoreLabel e:tokens_words)
+    		{
+    			retornado += e.word()+" ";
+    		}
+    		return retornado;   	 
     }
 }
