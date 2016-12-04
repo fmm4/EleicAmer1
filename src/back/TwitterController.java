@@ -19,20 +19,31 @@ public class TwitterController {
 	{
 	    ConfigurationBuilder cb = new ConfigurationBuilder();
 	    cb.setDebugEnabled(true)
-	          .setOAuthConsumerKey("Z6PXBblm7JLiCSBMGy4TMrG9z")
-	          .setOAuthConsumerSecret("xYyO8DZQjBydMaWY53SXaJPy1owXgNMyD5RgHD8gCfbaQHd0oR")
-	          .setOAuthAccessToken("4277442394-ajzWomJerOij6DKfFSxbi5Gy62tflz81Ct3KbyW")
-	          .setOAuthAccessTokenSecret("xp8RQ2Sqc9YRmKl2PG5XspNaPBJxPAnblo6rkQR9QIy2W");
+	          .setOAuthConsumerKey("FIq7HSkEl45Z7QLVaENmyhCN3")
+	          .setOAuthConsumerSecret("Mpltm5iLOH85EgwLnVKEjlgISXFxB6zvGgvolmRyGjJJFlUnlD")
+	          .setOAuthAccessToken("5DVlxFRHYHtMt0RVvhiyvD9HqmeUODkkv8AyBxZ1")
+	          .setOAuthAccessTokenSecret("bOu1JXy2wzOleS3ujNJxYvquSVRc52SHtKMOc2KyQbOJ8");
 	    TwitterFactory tf = new TwitterFactory(cb.build());
 	    Twitter twitter = tf.getInstance();
+	    List<Status> p;
 	        try {
 	            Query query = new Query(stringToSearch);
+	            query.setLang("en");
+//	            query.setSince(sdf.format(startDate));
+//	            query.setUntil(sdf.format(endDate));
+	            
+
 	            QueryResult result;
 	            result = twitter.search(query);
-	            //List<Status> tweets = result.getTweets();
-	           // for (Status tweet : tweets) {
-	            //    System.out.println("@" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-	           // }
+	            List<Status> tweets = result.getTweets();
+	            int num = 0;
+	            for (Status tweet : tweets) {
+	                if(!tweet.getText().contains("RT") && !tweet.getText().contains("&&"))
+	                {
+	                	System.out.println(tweet.getText());
+	                }
+	            }
+
 	            return result;
 	        } catch (TwitterException te) {
 	            te.printStackTrace();

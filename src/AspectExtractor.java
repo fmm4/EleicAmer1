@@ -41,30 +41,30 @@ public class AspectExtractor {
 	private static Vector<String[]> adjectivalModifier(Collection<TypedDependency> dependencies)
 	{
 		
-		return containRelationUnaria(dependencies,"amod");	
+		return containRelationUnaria(dependencies,"amod","NN","JJ");	
 	}
 	
 	//Adverbial modifier
 	private static Vector<String[]> adverbialModifier(Collection<TypedDependency> dependencies)
 	{
 		
-		return containRelationUnaria(dependencies,"advmod");	
+		return containRelationUnaria(dependencies,"advmod","JJ","NN");	
 	}
 	
 	//Direct object
 	private static Vector<String[]> directObject(Collection<TypedDependency> dependencies)
 	{
-		return containRelationDupla(dependencies,"dobj","nsubj");
+		return containRelationDupla(dependencies,"dobj","nsubj","JJ","NN");
 	}
 	//Adjectival complement
 	private static Vector<String[]> adjectivalComplement(Collection<TypedDependency> dependencies)
 	{
-		return containRelationDupla(dependencies,"xcomp","nsubj");
+		return containRelationDupla(dependencies,"xcomp","nsubj","JJ","NN");
 	}
 	//Adverbial modifier to a passive verb
 	private static Vector<String[]> adverbialModifierPssv(Collection<TypedDependency> dependencies)
 	{
-		return containRelationDupla(dependencies,"advmod","nsubjpass");
+		return containRelationDupla(dependencies,"advmod","nsubjpass","RB","NN");
 	}
 	//Complement of a copular web
 	private static Vector<String[]> complementWeb(Collection<TypedDependency> dependencies)
@@ -77,11 +77,14 @@ public class AspectExtractor {
 				for(TypedDependency td2:dependencies)
 				{
 					
-					if(td2.reln().toString().equals("cop") && td.gov().equals(td2.gov()))
+					if(td2.reln().toString().equals("cop") && td.gov().equals(td2.gov()) && td.dep().tag().toString().equals("NN") && td2.dep().tag().toString().equals("VBD"))
 					{
+						//debugDependency(td);
+						//debugDependency(td2);
+						
 						String[] tempRelation = new String[2];
-						tempRelation[0] = compoundNoun(dependencies,td.dep().word())+ td.dep().word();
-						tempRelation[1] = compoundNoun(dependencies,td.gov().word())+simpleNeg(dependencies, td.gov().word());
+						tempRelation[1] = compoundNoun(dependencies,td.dep().word()) + td.dep().word();
+						tempRelation[0] = simpleNeg(dependencies, td.gov().word())+adverbialModsModifier(dependencies,td.gov().word(),true)+td.gov().word();
 						returnedFound.add(tempRelation);						
 					}
 				}
@@ -110,13 +113,34 @@ public class AspectExtractor {
 				}
 			}
 		}
-		if(returned.equals(""))
-		{
-			return returned;
-		}else{
-			return compoundNoun(dependencies,returned)+returned+" ";			
-		}
+		return returned;
 	}
+	
+	//Adverbial Modifier
+	private static String adverbialModsModifier(Collection<TypedDependency> dependencies, String word, boolean compound)
+	{
+		String returned = "";
+		for(TypedDependency td:dependencies)
+		{
+			if(!compound){
+				if(td.dep().word() != null){
+					if(td.dep().word().equals(word) && td.reln().toString().equals("advmod"))
+					{
+						returned += " "+td.gov().word().toString();
+					}
+				}
+			}else{
+				if(td.gov().word() != null){
+					if(td.gov().word().equals(word) && td.reln().toString().equals("advmod"))
+					{
+						returned += td.dep().word().toString()+" ";
+					}
+				}
+			}
+		}
+		return returned;
+	}
+
 	
 	//Simple negation
 	private static String simpleNeg(Collection<TypedDependency> dependencies, String word)
@@ -127,7 +151,7 @@ public class AspectExtractor {
 			if(td.gov().word() != null){
 				if(td.gov().word().equals(word) && td.reln().toString().equals("neg"))
 				{
-					return "not "+word;
+					return "not ";
 				}
 			}
 		}
@@ -149,7 +173,7 @@ public class AspectExtractor {
 						{
 							if(td2.gov().word().equals(td.gov().word()) && td2.dep().word().equals("no"))
 							{
-								return "not "+word;						
+								return "not ";						
 							}
 						}
 					}
@@ -182,22 +206,22 @@ public class AspectExtractor {
 		if(auxs==2 && cop)
 		{
 			
-			return "not "+word;
+			return "not ";
 		}
-		return word;
+		return "";
 	} 
 	
 	//Acha relacao un
-	private static Vector<String[]> containRelationUnaria(Collection<TypedDependency> dependencies, String reln)
+	private static Vector<String[]> containRelationUnaria(Collection<TypedDependency> dependencies, String reln,String govType,String depType)
 	{
 		Vector<String[]> returnedFound = new Vector<String[]>();
 		
 		for(TypedDependency td:dependencies)
 		{
-			if(td.reln().toString().equals(reln)){
+			if(td.reln().toString().equals(reln) && td.gov().tag().toString().equals(govType) && td.dep().tag().toString().equals(depType)){
 				String[] tempRelation = new String[2];
-				tempRelation[0] = compoundNoun(dependencies,td.gov().word())+td.gov().word();
-				tempRelation[1] = simpleNeg(dependencies,td.dep().word());
+				tempRelation[1] = compoundNoun(dependencies,td.gov().word())+td.gov().word();
+				tempRelation[0] = simpleNeg(dependencies, td.dep().word())+td.dep().word()+adverbialModsModifier(dependencies,td.dep().word(),false);
 				returnedFound.add(tempRelation);
 			}
 		}
@@ -205,7 +229,7 @@ public class AspectExtractor {
 	}
 	
 	//Acha relacao dupla
-	private static Vector<String[]> containRelationDupla(Collection<TypedDependency> dependencies,String reln1,String reln2)
+	private static Vector<String[]> containRelationDupla(Collection<TypedDependency> dependencies,String reln1,String reln2,String depAsp,String depModi)
 	{
 		Vector<String[]> returnedFound = new Vector<String[]>();
 		
@@ -215,11 +239,13 @@ public class AspectExtractor {
 				for(TypedDependency td2:dependencies)
 				{
 					
-					if(td2.reln().toString().equals(reln2) && td.gov().equals(td2.gov()))
+					if(td2.reln().toString().equals(reln2) && td.gov().equals(td2.gov()) && td.dep().tag().toString().equals(depAsp) && td2.dep().tag().toString().equals(depModi))
 					{
+						//debugDependency(td);
+						//debugDependency(td2);
 						String[] tempRelation = new String[2];
-						tempRelation[0] = compoundNoun(dependencies, td.dep().word())+td.dep().word();
-						tempRelation[1] = simpleNeg(dependencies,td2.dep().word());
+						tempRelation[0] = simpleNeg(dependencies, td.gov().word())+td.dep().word()+adverbialModsModifier(dependencies,td.dep().word(),false);
+						tempRelation[1] = compoundNoun(dependencies, td2.dep().word())+td2.dep().word();
 						returnedFound.add(tempRelation);						
 					}
 				}
